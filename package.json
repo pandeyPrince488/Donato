@@ -18,7 +18,7 @@
     "test": "nyc mocha --timeout=60000 --exit",
     "lint": "eslint \"**/*.js\"",
     "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky install; fi",
-    "scss": "sass --no-source-map --load-path=./ --update ./public/css:./public/css",
+    "scss": "sass --no-source-map --load-path=node_modules --update ./public/css:./public/css",
     "lintStage": "node_modules/.bin/lint-staged"
   },
   "lint-staged": {
@@ -29,7 +29,6 @@
   "pre-commit": "lint-staged",
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.4.2",
-    "@ladjs/bootstrap-social": "^7.0.2",
     "@node-rs/bcrypt": "^1.7.3",
     "body-parser": "^1.20.2",
     "bootstrap": "^5.3.2",

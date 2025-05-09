@@ -1,0 +1,154 @@
+/* General Styles */
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #F46F6F0D;
+    color: #333;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  /* Blood Drop Shape */
+  /* Background Shape */
+  .background-shape {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(2);
+    width: 120px;
+    height: 140px;
+    border: 2px solid #F46F6F0D;
+    background: none;
+    border-radius: 50% 50% 0 0;
+    clip-path: polygon(50% 0%, 90% 40%, 100% 100%, 0% 100%, 10% 40%);
+  }
+  
+  
+  /* Navbar */
+  .navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 10%;
+    background-color: #F46F6F0D;
+    
+  }
+  
+  .logo img {
+    height: 40px;
+  }
+  
+  .nav-links a {
+    margin: 0 15px;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+  }
+  
+  /* Buttons */
+  .btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s ease;
+  }
+  
+  .register-btn {
+    background-color: #F46F6F;
+    border: 2px solid #F46F6F;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .register-btn:hover {
+    background-color: #c4004a;
+    color: black;
+  }
+  
+  .login-btn {
+    background-color: #F46F6F;
+    color: white;
+  }
+  
+  .login-btn:hover {
+    background-color: #c4004a;
+    color: black;
+  }
+  
+  .about {
+    color: black;
+  }
+  
+  .faq {
+    color: black;
+  }
+  
+  /* Hero Section */
+  .hero {
+    padding: 80px 10%;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+  }
+  
+  .new-badge {
+    display: inline-block;
+    background-color: #F46F6F;
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  h1 {
+    font-size: 48px;
+    font-weight: bold;
+    margin: 10px 0;
+    color: #222;
+  }
+  
+  .subtitle {
+    font-size: 18px;
+    color: #666;
+    margin-bottom: 20px;
+  }
+  
+  /* CTA Button */
+  .cta-button {
+    background-color: #F46F6F;
+    color: white;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .cta-button:hover {
+    background-color: #c4004a;
+  }
+  
+  /* Footer */
+  .footer {
+    margin-top: 50px;
+    padding: 20px;
+    font-size: 14px;
+    color: #777;
+  }
+  
+  .footer a {
+    color: #F46F6F;
+    text-decoration: none;
+  }
+  
+  .footer a:hover {
+    text-decoration: underline;
+  }
+  

@@ -1,0 +1,122 @@
+extends layout
+
+block content
+  style.
+    .about-section {
+      padding: 4rem 0;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    }
+    
+    .team-section {
+      padding: 4rem 0;
+      background: white;
+    }
+    
+    .about-card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .team-card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 2rem;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+    
+    .team-card:hover {
+      transform: translateY(-10px);
+    }
+    
+    .team-role {
+      color: #F46F6F;
+      font-weight: 600;
+      margin: 1rem 0;
+    }
+    
+    .team-name {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+    }
+    
+    .about-title {
+      color: #F46F6F;
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    
+    .section-title {
+      color: #333;
+      font-size: 2rem;
+      font-weight: bold;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+    
+    .about-text {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: #666;
+    }
+    
+    .team-icon {
+      font-size: 2.5rem;
+      color: #F46F6F;
+      margin-bottom: 1rem;
+    }
+
+  .about-section
+    .container
+      h1.about-title About Donato
+      .row.justify-content-center
+        .col-md-8
+          .about-card
+            p.about-text
+              | Donato is a revolutionary blood donation platform that connects blood donors with those in need. Our mission is to make blood donation more accessible and efficient by leveraging technology to bridge the gap between donors and recipients.
+            p.about-text
+              | With real-time location tracking and instant messaging capabilities, Donato ensures that help is always just a few clicks away. Whether you're a regular donor or someone in urgent need of blood, our platform makes the process simple, secure, and efficient.
+            p.about-text
+              | Join us in our mission to save lives and make blood donation more accessible to everyone.
+
+  .team-section
+    .container
+      h2.section-title Our Team
+      .row.justify-content-center
+        .col-md-4.mb-4
+          .team-card
+            i.fas.fa-user-tie.team-icon
+            h3.team-name Srajan
+            p.team-role DevOps Developer
+            p.text-muted Ensuring smooth deployment and infrastructure management
+        .col-md-4.mb-4
+          .team-card
+            i.fas.fa-user-astronaut.team-icon
+            h3.team-name Tanmay
+            p.team-role Frontend Developer
+            p.text-muted Creating beautiful and intuitive user interfaces
+        .col-md-4.mb-4
+          .team-card
+            i.fas.fa-user-ninja.team-icon
+            h3.team-name Prince
+            p.team-role Frontend Developer
+            p.text-muted Building responsive and interactive web experiences
+        .col-md-4.mb-4
+          .team-card
+            i.fas.fa-user-graduate.team-icon
+            h3.team-name Adnan
+            p.team-role Backend Developer
+            p.text-muted Developing robust server-side solutions
+        .col-md-4.mb-4
+          .team-card
+            i.fas.fa-user-shield.team-icon
+            h3.team-name Rahul
+            p.team-role Backend Developer
+            p.text-muted Architecting scalable backend systems 

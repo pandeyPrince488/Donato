@@ -1,0 +1,50 @@
+extends layout
+
+block content
+  .pb-2.mt-2.mb-4.border-bottom
+    h3 Donors near you with matching blood group
+  
+  if !user
+    .alert.alert-warning
+      | Please 
+      a(href='/login') login 
+      | or 
+      a(href='/signup') create an account 
+      | to see donors with matching blood group and to chat with them.
+  else if !user.profile.bloodGroup
+    .alert.alert-warning
+      | Please 
+      a(href='/account') update your profile 
+      | with your blood group to see matching donors.
+  else if donors.length === 0
+    .alert.alert-info No donors found within 45km with matching blood group.
+  else
+    .row
+      each donor in donors
+        .col-md-6.mb-4
+          .card
+            .card-body
+              h5.card-title #{donor.profile.name || 'Anonymous Donor'}
+              p.card-text
+                strong Blood Group: 
+                | #{donor.profile.bloodGroup}
+                br
+                if donor.distance !== null
+                  strong Distance: 
+                  | #{donor.distance} km
+                  br
+                if donor.profile.location && donor.profile.location.address
+                  strong Location: 
+                  | #{donor.profile.location.address}
+              .d-flex.justify-content-between.align-items-center.mt-3
+                a.btn.btn-primary(href=`/chat?userId=${donor._id}`)
+                  i.fas.fa-comments.me-2
+                  | Chat with Donor
+                if donor.email
+                  a.btn.btn-outline-primary(href=`mailto:${donor.email}`)
+                    i.fas.fa-envelope.me-2
+                    | Email
+
+block scripts
+  script.
+    // Add any required JavaScript here

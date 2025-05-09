@@ -1,0 +1,241 @@
+extends ../layout
+
+block content
+  #locationStatus.alert.alert-primary Getting your location...
+  .pb-2.mt-2.mb-4.border-bottom
+    h3 Donor Profile
+
+  form(action='/account/profile' method='POST')
+    input(type='hidden' name='_csrf', value=_csrf)
+    input(type='hidden' name='latitude' id='latitude')
+    input(type='hidden' name='longitude' id='longitude')
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='email') Email
+      .col-md-7
+        input.form-control(type='email' name='email' id='email', value=user.email, autocomplete='email', required)
+      .offset-sm-3.col-md-7.pl-3.mb-2
+        if user.emailVerified
+          .text-success.font-italic
+            | Verified
+        else
+          .text-danger.font-italic
+            | Unverified: &nbsp;
+            a(href='/account/verify') Send verification email
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='name') Name
+      .col-md-7.mt-2
+        input.form-control(type='text' name='name' id='name', value=user.profile.name, autocomplete='name')
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='age') Age
+      .col-md-7.mt-2
+        input.form-control(type='number' name='age' id='age', value=user.profile.age)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='phone') Phone
+      .col-md-7.mt-2
+        .input-group
+          span.input-group-text +91
+          input.form-control(type='tel' name='phone' id='phone', value=user.profile.phone, autocomplete='tel')
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right Gender
+      .col-sm-6.mt-2
+        .form-check.form-check-inline
+          input(type='radio' class='form-check-input' checked=user.profile.gender == 'male' name='gender' value='male' data-toggle='radio')
+          label.form-check-label Male
+
+        .form-check.form-check-inline
+          input(type='radio' class='form-check-input' checked=user.profile.gender == 'female' name='gender' value='female' data-toggle='radio')
+          label.form-check-label Female
+
+        .form-check.form-check-inline
+          input(type='radio' class='form-check-input' checked=user.profile.gender == 'other' name='gender' value='other' data-toggle='radio')
+          label.form-check-label Other
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='bloodGroup') Blood Group
+      .col-md-7.mb-2
+        select.form-select(name='bloodGroup' id='bloodGroup')
+          each bloodGroup in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
+            option(value=bloodGroup, selected=bloodGroup == user.profile.bloodGroup)= bloodGroup
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='street') Street
+      .col-md-7.mb-2
+          input.form-control(type='text' name='street' id='street', value=user.profile.address.street, autocomplete='street')
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='city') City
+      .col-md-7.mb-2
+          input.form-control(type='text' name='city' id='city', value=user.profile.address.city, autocomplete='city')
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='state') State
+      .col-md-7.mb-2
+          input.form-control(type='text' name='state' id='state', value=user.profile.address.state, autocomplete='state')
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='country') Country
+      .col-md-7.mb-2
+          input.form-control(type='text' name='country' id='country', value=user.profile.address.country, autocomplete='country')
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='postalCode') PIN
+      .col-md-7.mb-2
+          input.form-control(type='text' name='postalCode' id='postalCode', value=user.profile.address.postalCode)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='website') Website
+      .col-md-7.mb-2
+        input.form-control(type='url' name='website' id='website', value=user.profile.website, autocomplete='url')
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right Gravatar
+      .col-sm-4.mb-2
+        img(src=user.gravatar(), class='profile' width='100' height='100')
+    .form-group
+      .offset-sm-3.col-md-7.pl-2
+        button.btn.btn.btn-primary(type='submit', id='submitButton', disabled)
+          i.fas.fa-pencil-alt.fa-sm.iconpadding
+          | Update Profile
+
+  .pb-2.mt-2.mb-4.border-bottom
+    h3 Donation History
+  
+  if donations.length > 0
+    table.table.table-striped.table-hover
+      thead
+        tr
+          th Date
+          th Blood Group
+          th Location
+          th Status
+      tbody
+        each donation in donations
+          tr
+            td= new Date(donation.createdAt).toLocaleDateString()
+            td= donation.bloodGroup
+            td= donation.location
+            td= donation.status
+  else
+    p No donations found
+
+  .pb-2.mt-2.mb-4.border-bottom
+    h3 Change Password
+
+  form(action='/account/password' method='POST')
+    input(type='hidden' name='_csrf', value=_csrf)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='password') New Password
+      .col-md-7.mb-2
+        input.form-control(type='password' name='password' id='password' autocomplete='new-password' minlength='8', required)
+    .form-group.row
+      label.col-md-3.col-form-label.font-weight-bold.text-right(for='confirmPassword') Confirm Password
+      .col-md-7.mb-2
+        input.form-control(type='password' name='confirmPassword' id='confirmPassword' autocomplete='new-password' minlength='8', required)
+    .form-group
+      .offset-sm-3.col-md-7.pl-2
+        button.btn.btn-primary(type='submit')
+          i.fas.fa-lock.fa-sm.iconpadding
+          | Change Password
+
+  .pb-2.mt-2.mb-4.border-bottom
+    h3 Delete Account
+
+  form(action='/account/delete' method='POST' onsubmit="return confirm('Are you sure you want to delete your account?');")
+    .form-group
+      p.offset-sm-3.col-md-7.pl-2 You can delete your account, but keep in mind this action is irreversible.
+      input(type='hidden' name='_csrf', value=_csrf)
+      .offset-sm-3.col-md-7.pl-2
+        button.btn.btn-danger(type='submit')
+          i.fas.fa-trash-alt.fa-sm.iconpadding
+          | Delete my account
+
+  .pb-2.mt-2.mb-4.border-bottom
+    h3 Linked Accounts
+  .form-group
+    .offset-sm-3.col-md-7.pl-2
+      if user.google
+        p.mb-1: a.text-danger(href='/account/unlink/google') Unlink your Google account
+      else
+        p.mb-1: a(href='/auth/google') Link your Google account
+    //- .offset-sm-3.col-md-7.pl-2
+    //-   if user.facebook
+    //-     p.mb-1: a.text-danger(href='/account/unlink/facebook') Unlink your Facebook account
+    //-   else
+    //-     p.mb-1: a(href='/auth/facebook') Link your Facebook account
+    //-   if user.snapchat
+    //-     p.mb-1: a.text-danger(href='/account/unlink/snapchat') Unlink your Snapchat account
+    //-   else
+    //-     p.mb-1: a(href='/auth/snapchat') Link your Snapchat account
+    //- .offset-sm-3.col-md-7.pl-2
+    //-   if user.twitter
+    //-     p.mb-1: a.text-danger(href='/account/unlink/twitter') Unlink your Twitter account
+    //-   else
+    //-     p.mb-1: a(href='/auth/twitter') Link your Twitter account
+    //- .offset-sm-3.col-md-7.pl-2
+    //-   if user.github
+    //-     p.mb-1: a.text-danger(href='/account/unlink/github') Unlink your GitHub account
+    //-   else
+    //-     p.mb-1: a(href='/auth/github') Link your GitHub account
+    //- .offset-sm-3.col-md-7.pl-2
+    //-   if user.linkedin
+    //-     p.mb-1: a.text-danger(href='/account/unlink/linkedin') Unlink your LinkedIn account
+    //-   else
+    //-     p.mb-1: a(href='/auth/linkedin') Link your LinkedIn account
+    //- .offset-sm-3.col-md-7.pl-2
+    //-   if user.steam
+    //-     p.mb-1: a.text-danger(href='/account/unlink/steam') Unlink your Steam account
+    //-   else
+    //-     p.mb-1: a(href='/auth/steam') Link your Steam account
+    //- .offset-sm-3.col-md-7.pl-2
+    //-   if user.twitch
+    //-     p.mb-1: a.text-danger(href='/account/unlink/twitch') Unlink your Twitch account
+    //-   else
+    //-     p.mb-1: a(href='/auth/twitch') Link your Twitch account
+    //- .offset-sm-3.col-md-7.pl-2
+    //-   if user.quickbooks
+    //-     p.mb-1: a.text-danger(href='/account/unlink/quickbooks') Unlink your QuickBooks account
+    //-   else
+    //-     p.mb-1: a(href='/auth/quickbooks') Link your QuickBooks account
+
+  script.
+    document.addEventListener('DOMContentLoaded', function() {
+      const statusDiv = document.getElementById('locationStatus');
+      const submitButton = document.getElementById('submitButton');
+
+      function updateStatus(message, isSuccess = false) {
+        statusDiv.textContent = message;
+      }
+      //- var users = !{JSON.stringify(user).replace(/<\//g, "<\\/")}
+      //- console.log(users)
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          document.getElementById('latitude').value = latitude;
+          document.getElementById('longitude').value = longitude;
+
+          updateStatus(`Location obtained: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`, true);
+          setTimeout(() => {
+            statusDiv.classList.add('d-none');
+          }, 5000);
+          submitButton.disabled = false;
+
+        }, function(error) {
+          let errorMessage;
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage = "Location permission denied";
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage = "Location information unavailable";
+              break;
+            case error.TIMEOUT:
+              errorMessage = "Location request timed out";
+              break;
+            default:
+              errorMessage = "An unknown error occurred";
+          }
+          updateStatus(`Error: ${errorMessage}`);
+        }, {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        });
+        } else {
+          updateStatus("Geolocation is not supported by this browser");
+        }
+
+    })

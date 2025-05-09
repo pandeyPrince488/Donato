@@ -1,0 +1,142 @@
+//.navbar.navbar-light.fixed-top.navbar-expand-lg.bg-light
+//  .container
+//    a.navbar-brand(href='/')
+//      i.fas.fa-cube
+//      | Project name
+//    button.navbar-toggler(type='button', data-toggle='collapse', data-target='.navbar-collapse')
+//      span.sr-only Toggle navigation
+//      span.navbar-toggler-icon
+//    .collapse.navbar-collapse
+//      ul.nav.navbar-nav
+//        li.nav-item(class=(title === 'Home') ? 'active' : undefined)
+//          a.nav-link(href='/') Home
+//        li.nav-item(class=(title === 'API Examples') ? 'active' : undefined)
+//          a.nav-link(href='/api') API Examples
+//        li.nav-item(class=(title === 'Contact') ? 'active' : undefined)
+//          a.nav-link(href='/contact') Contact
+//      ul.nav.navbar-nav.ml-auto
+//        if !user
+//          li.nav-item(class=(title === 'Login') ? 'active' : undefined)
+//            a.nav-link(href='/login') Login
+//          li.nav-item(class=(title === 'Create Account') ? 'active' : undefined)
+//            a.nav-link(href='/signup') Create Account
+//        else
+//          li.dropdown(class=(title === 'Account Management') ? 'active' : undefined).nav-item
+//            a.dropdown-toggle.nav-link(href='#', data-toggle='dropdown')
+//              if user.profile.picture
+//                img(src=user.profile.picture)
+//              else
+//                img(src=user.gravatar(60))
+//              span= user.profile.name || user.email || user.id
+//              i.caret
+//            div.dropdown-menu
+//              a.dropdown-item(href='/account') My Account
+//              div.dropdown-divider
+//              a.dropdown-item(href='/logout') Logout
+//
+//
+//
+
+nav.navbar.navbar-expand-lg.fixed-top.custom-navbar
+  .container
+    a.navbar-brand(href='/')
+      span.text-danger
+        i.fas.fa-heartbeat
+      |  Donato
+    button.navbar-toggler(type='button' data-toggle='collapse' data-target='.navbar-collapse')
+      span.navbar-toggler-icon
+    .collapse.navbar-collapse
+      ul.navbar-nav.mr-auto
+        li.nav-item(class=(title === 'Home') ? 'active' : undefined)
+          a.nav-link(href='/') Home
+        li.nav-item(class=(title === 'Donors') ? 'active' : undefined)
+          a.nav-link(href='/donors') Find Donors
+        if user
+          li.nav-item(class=(title === 'Chat') ? 'active' : undefined)
+            a.nav-link(href='/chat') Chat
+      ul.navbar-nav.ml-auto
+        if !user
+          li.nav-item(class=(title === 'Login') ? 'active' : undefined)
+            a.nav-link(href='/login') Login
+          li.nav-item(class=(title === 'Create Account') ? 'active' : undefined)
+            a.btn.btn-primary.ml-2(href='/signup') Sign Up
+        else
+          li.dropdown.nav-item.d-flex.align-items-center
+            a.dropdown-toggle.nav-link(href='#' data-toggle='dropdown')
+              if user.profile.picture
+                img.rounded-circle(src=user.profile.picture width='30' height='30')
+              else
+                img.rounded-circle(src=user.gravatar(30) width='30' height='30')
+              a.ml-2(href='/account' style='color:inherit;text-decoration:none;')= user.profile.name || user.email || user.id
+            .dropdown-menu.dropdown-menu-right
+              a.dropdown-item(href='/account') My Account
+              a.dropdown-item(href='/donations') My Donations
+              .dropdown-divider
+            a.nav-link.p-0.ml-2(href='/logout' title='Logout' style='color:#F46F6F; font-size:1.3rem;')
+              i.fas.fa-sign-out-alt
+
+style.
+  .custom-navbar {
+    background: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    border-radius: 0 0 24px 24px;
+    padding: 0.5rem 2rem;
+    margin: 2.5rem auto 0 auto;
+    max-width: 1100px;
+    left: 0;
+    right: 0;
+    border: none;
+    z-index: 10;
+  }
+  .navbar-brand {
+    font-weight: bold;
+    font-size: 1.7rem;
+    letter-spacing: 1px;
+    color: #F46F6F !important;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .nav-link {
+    font-weight: 500;
+    color: #333 !important;
+    transition: color 0.3s;
+    border-radius: 18px;
+    padding: 0.5rem 1.2rem;
+  }
+  .nav-link.active, .nav-link:hover {
+    color: #F46F6F !important;
+    background: rgba(244, 111, 111, 0.08);
+  }
+  .btn-primary {
+    background-color: #F46F6F;
+    border: none;
+    border-radius: 20px;
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(244, 111, 111, 0.08);
+  }
+  .btn-primary:hover {
+    background-color: #d45f5f;
+  }
+  .dropdown-menu {
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    border: none;
+    margin-top: 0.5rem;
+  }
+  .dropdown-item {
+    font-weight: 500;
+    color: #333;
+    border-radius: 12px;
+    transition: background 0.2s;
+  }
+  .dropdown-item:hover {
+    background: #F46F6F;
+    color: #fff !important;
+  }
+  .rounded-circle {
+    border: 2px solid #F46F6F22;
+  }
+

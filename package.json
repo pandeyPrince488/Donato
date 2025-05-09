@@ -1,0 +1,83 @@
+{
+  "name": "blood-chain",
+  "version": "8.0.1",
+  "description": "A boilerplate for Node.js web applications",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sahat/hackathon-starter.git"
+  },
+  "license": "MIT",
+  "author": "Sahat Yalkabov",
+  "contributors": [
+    "Yashar Fakhari (https://github.com/YasharF)"
+  ],
+  "scripts": {
+    "postinstall": "patch-package && npm run scss",
+    "start": "npm run scss && node app.js",
+    "dev": "npm run scss && nodemon app.js",
+    "test": "nyc mocha --timeout=60000 --exit",
+    "lint": "eslint \"**/*.js\"",
+    "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky install; fi",
+    "scss": "sass --no-source-map --load-path=./ --update ./public/css:./public/css",
+    "lintStage": "node_modules/.bin/lint-staged"
+  },
+  "lint-staged": {
+    "*.js": [
+      "npm run lint -- --fix"
+    ]
+  },
+  "pre-commit": "lint-staged",
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.4.2",
+    "@ladjs/bootstrap-social": "^7.0.2",
+    "@node-rs/bcrypt": "^1.7.3",
+    "body-parser": "^1.20.2",
+    "bootstrap": "^5.3.2",
+    "compression": "^1.7.4",
+    "connect-mongo": "^5.1.0",
+    "dotenv": "^16.3.1",
+    "errorhandler": "^1.5.1",
+    "express": "^4.18.2",
+    "express-flash": "^0.0.2",
+    "express-rate-limit": "^7.1.1",
+    "express-session": "^1.17.3",
+    "jquery": "^3.7.1",
+    "lodash": "^4.17.21",
+    "lusca": "^1.7.0",
+    "mailchecker": "^6.0.17",
+    "mongoose": "^7.6.3",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.2",
+    "nodemailer": "^7.0.3",
+    "passport": "^0.6.0",
+    "passport-local": "^1.0.0",
+    "pug": "^3.0.2",
+    "sass": "^1.69.3",
+    "socket.io": "^4.8.1",
+    "validator": "^13.11.0"
+  },
+  "devDependencies": {
+    "chai": "^4.3.10",
+    "eslint": "^8.51.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-chai-friendly": "^0.7.2",
+    "eslint-plugin-import": "^2.28.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.0.1",
+    "mocha": "^10.2.0",
+    "mongodb": "^6.13.0",
+    "mongodb-memory-server": "^9.0.1",
+    "nodemon": "^3.1.9",
+    "nyc": "^15.1.0",
+    "sinon": "^16.1.0",
+    "supertest": "^6.3.3"
+  },
+  "config": {
+    "mongodbMemoryServer": {
+      "version": "6.0.6"
+    }
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

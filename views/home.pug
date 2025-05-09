@@ -1,0 +1,197 @@
+extends layout
+
+block content
+  style.
+    /* Prevent scrollbars and overflow */
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #F46F6F0D;
+      color: #333;
+      text-align: center;
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Spline Viewer Container - Full Page Background */
+    .spline-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: none;
+    }
+
+    /* Spline Viewer Customization */
+    spline-viewer {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      background: transparent !important;
+      transform: none !important;
+    }
+
+    /* Hide Spline watermark */
+    spline-viewer::part(logo) {
+      display: none !important;
+    }
+    .spline-viewer [part="logo"], .spline-viewer .logo, .spline-viewer .watermark, [class*='spline'][class*='watermark'], [class*='spline'][class*='logo'] {
+      display: none !important;
+    }
+    
+    /* Navbar always on top */
+    .navbar {
+      z-index: 10 !important;
+      position: relative;
+    }
+    
+    /* Hero Section - Centered in viewport */
+    .hero {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 2;
+      width: 100vw;
+      max-width: 100vw;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 0 10vw;
+      text-align: center;
+    }
+    
+    .new-badge {
+      display: inline-block;
+      background-color: #F46F6F;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+    
+    h1 {
+      font-size: 4.5rem;
+      margin: 1rem 0;
+      color: #F46F6F;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .tagline {
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+      color: #666;
+      max-width: 600px;
+    }
+    
+    /* Buttons */
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    
+    .btn {
+      padding: 12px 30px;
+      border-radius: 30px;
+      font-weight: bold;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      z-index: 2;
+    }
+    
+    .btn-primary {
+      background-color: #F46F6F;
+      color: white;
+      border: none;
+    }
+    
+    .btn-secondary {
+      background-color: transparent;
+      color: #F46F6F;
+      border: 2px solid #F46F6F;
+    }
+    
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(244, 111, 111, 0.2);
+    }
+
+  .spline-container
+    script(type="module" src="https://unpkg.com/@splinetool/viewer/build/spline-viewer.js")
+    spline-viewer(
+      url="https://prod.spline.design/Xg5ob7muFX-xqvoL/scene.splinecode"
+      background="transparent"
+      events-target="global"
+    )
+
+  .hero
+    span.new-badge New
+    h1 Donato
+    p.tagline Connecting blood donors with those in need
+    
+    .cta-buttons
+      a.btn.btn-primary(href="/signup") Get Started
+      a.btn.btn-secondary(href="/about") Learn More
+
+  script.
+    document.addEventListener('DOMContentLoaded', () => {
+      const viewer = document.querySelector('spline-viewer');
+
+      function removeSplineWatermark() {
+        if (viewer && viewer.shadowRoot) {
+          const tryRemove = () => {
+            const logo = viewer.shadowRoot.querySelector('[part="logo"], .logo, .watermark');
+            if (logo) logo.remove();
+          };
+          // Initial try
+          tryRemove();
+          // Observe for future changes
+          const observer = new MutationObserver(tryRemove);
+          observer.observe(viewer.shadowRoot, { childList: true, subtree: true });
+        }
+        // Also try in the main DOM
+        document.querySelectorAll('[part="logo"], .logo, .watermark').forEach(el => el.remove());
+      }
+
+      // Try immediately and after a short delay
+      removeSplineWatermark();
+      setTimeout(removeSplineWatermark, 1000);
+      setTimeout(removeSplineWatermark, 2000);
+      setTimeout(removeSplineWatermark, 3000);
+    });
+
+  // Custom overlay to cover Spline watermark (must be inside block content)
+  div.spline-watermark-cover
+  style.
+    .spline-watermark-cover {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      width: 160px;
+      height: 48px;
+      background: #fff;
+      border-radius: 16px;
+      z-index: 1000;
+      pointer-events: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }

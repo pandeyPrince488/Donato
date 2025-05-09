@@ -1,0 +1,279 @@
+extends layout
+
+block head
+  script(src='https://cdn.socket.io/4.8.1/socket.io.min.js' integrity="sha384-mkQ3/7FUtcGyoppY6bz/PORYoGqOl7/aSUMn2ymDOJcapfS6PHqxhRTMh1RR0Q6+" crossorigin="anonymous")
+
+block content
+  style.
+    .chat-messages {
+      height: 400px;
+      overflow-y: auto;
+      padding: 1rem;
+    }
+    
+    .message {
+      display: flex;
+      margin-bottom: 1rem;
+    }
+    
+    .message.own {
+      justify-content: flex-end;
+    }
+    
+    .message-content {
+      max-width: 70%;
+      padding: 0.5rem 1rem;
+      border-radius: 1rem;
+      word-break: break-word;
+    }
+    
+    .message.own .message-content {
+      border-bottom-right-radius: 0.25rem;
+      background-color: #dc3545;
+      color: white;
+    }
+    
+    .message.other .message-content {
+      border-bottom-left-radius: 0.25rem;
+      background-color: #f8f9fa;
+    }
+
+    .conversation-item {
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .conversation-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    .conversation-item.active {
+      background-color: #e9ecef;
+    }
+
+  input#csrfToken(type='hidden', name='_csrf', value=_csrf)
+  .container.py-4
+    .row
+      .col-md-4.mb-4
+        .card
+          .card-header.bg-white.border-bottom-0
+            h5.mb-0 Conversations
+          .list-group.list-group-flush#conversationsList
+
+      .col-md-8
+        .card#chatContainer(class=targetUserId ? '' : 'd-none')
+          .card-header.bg-white.border-bottom-0.d-flex.justify-content-between.align-items-center
+            h5.mb-0#chatRecipientName
+            button.btn.btn-sm.btn-outline-secondary#closeChat(type='button')
+              i.fas.fa-times
+          #connection-status.text-center.mb-2
+          .card-body.chat-messages#messageContainer
+          .card-footer.bg-white
+            form#messageForm
+              .input-group
+                input.form-control#messageInput(type='text', placeholder='Type your message...')
+                button.btn.btn-danger(type='submit')
+                  i.fas.fa-paper-plane
+
+block scripts
+  script.
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    const csrfToken = getCookie('XSRF-TOKEN');
+    const socket = io({
+      auth: {
+        userId: '#{user._id}',
+        token: csrfToken
+      }
+    });
+
+    const userId = '#{user._id}';
+    let currentChatPartner = null;
+    const targetUserId = '#{targetUserId || ""}';
+
+    async function authenticatedFetch(url, options = {}) {
+      const defaultOptions = {
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-XSRF-TOKEN': csrfToken
+        },
+        ...options
+      };
+      
+      try {
+        const response = await fetch(url, defaultOptions);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return await response.json();
+      } catch (error) {
+        console.error('Fetch error:', error);
+        throw error;
+      }
+    }
+
+    let loadConversationsTimeout;
+    function loadConversations() {
+      clearTimeout(loadConversationsTimeout);
+      loadConversationsTimeout = setTimeout(() => {
+        authenticatedFetch('/api/chat/conversations')
+          .then(data => {
+            const conversationsList = document.getElementById('conversationsList');
+            conversationsList.innerHTML = '';
+            
+            if (data.conversations.length === 0) {
+              conversationsList.innerHTML = '<div class="list-group-item text-muted">No conversations yet</div>';
+            }
+
+            data.conversations.forEach(conv => {
+              const unreadBadge = conv.unreadCount > 0 
+                ? `<span class="badge bg-danger rounded-pill">${conv.unreadCount}</span>` 
+                : '';
+              
+              const item = document.createElement('a');
+              item.href = '#';
+              item.className = `list-group-item list-group-item-action conversation-item d-flex justify-content-between align-items-center ${conv.otherUser._id === currentChatPartner ? 'active' : ''}`;
+              item.innerHTML = `
+                <div>
+                  <h6 class="mb-1">${conv.otherUser.profile.name || 'Anonymous User'}</h6>
+                  <small class="text-muted">${conv.lastMessage ? conv.lastMessage.content : 'No messages yet'}</small>
+                </div>
+                ${unreadBadge}
+              `;
+              
+              item.onclick = (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+                openChat(conv.otherUser._id, conv.otherUser.profile.name || 'Anonymous User');
+              };
+              
+              conversationsList.appendChild(item);
+            });
+
+            // Always open chat if targetUserId is present
+            if (targetUserId && !currentChatPartner) {
+              authenticatedFetch(`/api/user/${targetUserId}`)
+                .then(user => {
+                  if (user && user.profile) {
+                    openChat(user._id, user.profile.name || 'Anonymous User');
+                  }
+                })
+                .catch(err => console.error('Error fetching user:', err));
+            }
+          })
+          .catch(err => console.error('Error loading conversations:', err));
+      }, 1000);
+    }
+
+    function openChat(partnerId, partnerName) {
+      currentChatPartner = partnerId;
+      document.getElementById('chatContainer').classList.remove('d-none');
+      document.getElementById('chatRecipientName').textContent = partnerName;
+      
+      authenticatedFetch(`/api/chat/history/${partnerId}`)
+        .then(data => {
+          const messageContainer = document.getElementById('messageContainer');
+          messageContainer.innerHTML = '';
+          
+          if (!data.messages || data.messages.length === 0) {
+            messageContainer.innerHTML = '<div class="text-center text-muted my-3">No messages yet</div>';
+          } else {
+            data.messages.forEach(msg => {
+              const isOwn = msg.sender._id === userId || msg.sender === userId;
+              const messageDiv = document.createElement('div');
+              messageDiv.className = `message ${isOwn ? 'own' : 'other'} mb-2`;
+              messageDiv.innerHTML = `
+                <div class="message-content">
+                  ${msg.message}
+                  <small class="d-block text-${isOwn ? 'light' : 'muted'}">${new Date(msg.createdAt).toLocaleTimeString()}</small>
+                </div>
+              `;
+              messageContainer.appendChild(messageDiv);
+            });
+          }
+          messageContainer.scrollTop = messageContainer.scrollHeight;
+          if (data.messages && data.messages.length > 0) {
+            authenticatedFetch(`/api/chat/mark-read/${partnerId}`, { method: 'POST' })
+              .then(() => loadConversations())
+              .catch(err => console.error('Error marking messages as read:', err));
+          }
+        })
+        .catch(err => console.error('Error loading chat history:', err));
+    }
+
+    // Close chat handler
+    document.getElementById('closeChat').onclick = () => {
+      document.getElementById('chatContainer').classList.add('d-none');
+      currentChatPartner = null;
+      document.querySelectorAll('.conversation-item').forEach(el => el.classList.remove('active'));
+    };
+
+    document.getElementById('messageForm').onsubmit = async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('messageInput');
+      const message = input.value.trim();
+      
+      if (message && currentChatPartner) {
+        input.value = '';
+        
+        const messageContainer = document.getElementById('messageContainer');
+        const noMessagesDiv = messageContainer.querySelector('.text-center.text-muted');
+        if (noMessagesDiv) {
+          noMessagesDiv.remove();
+        }
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message own mb-2';
+        const timestamp = new Date().toLocaleTimeString();
+        messageDiv.innerHTML = `
+          <div class="message-content">
+            ${message}
+            <small class="d-block text-light">${timestamp}</small>
+          </div>
+        `;
+        messageContainer.appendChild(messageDiv);
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+
+        socket.emit('private message', {
+          content: message,
+          to: currentChatPartner
+        });
+      }
+    };
+
+    socket.on('private message', ({ content, from, createdAt }) => {
+      if (from === currentChatPartner) {
+        const messageContainer = document.getElementById('messageContainer');
+        const noMessagesDiv = messageContainer.querySelector('.text-center.text-muted');
+        if (noMessagesDiv) {
+          noMessagesDiv.remove();
+        }
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message other mb-2';
+        messageDiv.innerHTML = `
+          <div class="message-content">
+            ${content}
+            <small class="d-block text-muted">${new Date(createdAt).toLocaleTimeString()}</small>
+          </div>
+        `;
+        messageContainer.appendChild(messageDiv);
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+
+        authenticatedFetch(`/api/chat/mark-read/${from}`, { method: 'POST' })
+          .then(() => loadConversations())
+          .catch(err => console.error('Error marking messages as read:', err));
+      } else {
+        loadConversations();
+      }
+    });
+
+    // Initial load
+    loadConversations();
+

@@ -10,14 +10,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+# --ignore-scripts: skip the postinstall hook here because it runs
+# `patch-package && npm run scss`, but patches/ and public/css/ aren't
+# copied yet. We invoke them explicitly below once the full source is in.
+RUN npm ci --omit=dev --ignore-scripts
 
 # Copy the rest of the app.
 COPY . .
 
-# Compile SCSS once at build time (the start script also recompiles, but this
-# warms up the assets directory for the static middleware).
-RUN npm run scss || true
+# Apply patches now that patches/ exists, then compile SCSS now that
+# public/css/ exists. The start script also recompiles, but doing it at
+# build time warms the assets directory for the static middleware.
+RUN npx patch-package && npm run scss
 
 EXPOSE 8080
 ENV PORT=8080 \

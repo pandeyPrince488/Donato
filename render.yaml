@@ -1,0 +1,65 @@
+# Render.com Blueprint -- defines BOTH services so the whole stack deploys
+# from one git push. Walk through the activation steps in DEPLOY.md.
+#
+# Render free tier notes:
+#   * Web services sleep after 15 minutes of no traffic and cold-start in
+#     ~30-60 seconds. That is fine for a portfolio/demo.
+#   * MongoDB is NOT included here -- you'll use the free MongoDB Atlas
+#     cluster and paste its connection string into MONGODB_URI.
+
+services:
+  # =========================================================
+  # 1. The Python AI service (FastAPI). Publicly reachable but
+  #    gated by AI_SERVICE_TOKEN so only Donato can call it.
+  # =========================================================
+  - type: web
+    name: donato-ai
+    runtime: docker
+    plan: free
+    dockerfilePath: ./ai-service/Dockerfile
+    dockerContext: ./ai-service
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: AI_SERVICE_PORT
+        value: 8000
+      - key: GROQ_API_KEY
+        sync: false          # paste your Groq key in the Render dashboard
+      - key: LLM_MODEL
+        value: llama-3.1-8b-instant
+      - key: AI_SERVICE_TOKEN
+        generateValue: true  # Render generates a strong random value
+      - key: CHROMA_PERSIST_DIR
+        value: /tmp/chroma   # ephemeral on free tier (re-indexed at boot, ~3s)
+      - key: DISABLE_CPP_EXT
+        value: "false"
+
+  # =========================================================
+  # 2. The Node web app (Donato). Publicly reachable.
+  # =========================================================
+  - type: web
+    name: donato-web
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: NODE_ENV
+        value: production
+      - key: BASE_URL
+        sync: false          # set to your donato-web URL, e.g. https://donato-web.onrender.com
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false          # paste your MongoDB Atlas connection string here
+      - key: AI_SERVICE_URL
+        sync: false          # paste donato-ai's URL, e.g. https://donato-ai.onrender.com
+      - key: AI_SERVICE_TOKEN
+        fromService:
+          type: web
+          name: donato-ai
+          envVarKey: AI_SERVICE_TOKEN

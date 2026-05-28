@@ -1,0 +1,15 @@
+node_modules
+npm-debug.log
+.git
+.env
+ai-service/.env
+ai-service/.venv
+ai-service/data/chroma
+ai-service/cpp_ext/build
+ai-service/cpp_ext/*.egg-info
+__pycache__
+*.pyc
+.DS_Store
+DEPLOY.md
+README.md
+prod-checklist.md

@@ -17,7 +17,7 @@
     "dev": "npm run scss && nodemon app.js",
     "test": "nyc mocha --timeout=60000 --exit",
     "lint": "eslint \"**/*.js\"",
-    "prepare": "if [ \"$NODE_ENV\" != \"production\" ]; then husky install; fi",
+    "prepare": "node -e \"process.env.NODE_ENV==='production'||require('child_process').execSync('husky install',{stdio:'inherit'})\"",
     "scss": "sass --no-source-map --load-path=node_modules --update ./public/css:./public/css",
     "lintStage": "node_modules/.bin/lint-staged"
   },
@@ -68,6 +68,7 @@
     "mongodb-memory-server": "^9.0.1",
     "nodemon": "^3.1.9",
     "nyc": "^15.1.0",
+    "patch-package": "^8.0.0",
     "sinon": "^16.1.0",
     "supertest": "^6.3.3"
   },

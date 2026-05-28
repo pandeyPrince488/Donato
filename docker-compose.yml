@@ -1,0 +1,45 @@
+# Local dev: one command to bring up Mongo + Donato + ai-service.
+#
+#   cp .env.example .env
+#   cp ai-service/.env.example ai-service/.env
+#   # edit both: at minimum, fill GROQ_API_KEY and pick the same AI_SERVICE_TOKEN
+#   docker compose up --build
+#
+# Then open http://localhost:8080
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:7
+    ports: ["27017:27017"]
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  ai-service:
+    build: ./ai-service
+    env_file: ./ai-service/.env
+    ports: ["8000:8000"]
+    volumes:
+      - ai-chroma:/app/data/chroma
+
+  web:
+    build: .
+    env_file: ./.env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/bloodchain
+      AI_SERVICE_URL: http://ai-service:8000
+    depends_on:
+      mongo:
+        condition: service_healthy
+      ai-service:
+        condition: service_started
+    ports: ["8080:8080"]
+
+volumes:
+  mongo-data:
+  ai-chroma:

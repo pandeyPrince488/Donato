@@ -1,0 +1,125 @@
+//- Floating eligibility chatbot widget. Mount this partial on any page
+//- where you want the assistant available. Behaviour lives in
+//- /js/eligibility-chat.js so the markup stays minimal.
+
+#eligibility-chat-root(aria-live='polite')
+  button#eligibility-chat-toggle(type='button', aria-label='Open eligibility assistant', title='Ask about donor eligibility')
+    i.fas.fa-comment-medical
+  .eligibility-chat-panel#eligibility-chat-panel(hidden)
+    .eligibility-chat-header
+      div
+        strong Eligibility Assistant
+        .small.text-muted (informational, not medical advice)
+      button.eligibility-chat-close#eligibility-chat-close(type='button', aria-label='Close')
+        i.fas.fa-times
+    .eligibility-chat-messages#eligibility-chat-messages
+      .ec-msg.ec-msg-bot
+        | Hi! Ask me anything about blood-donor eligibility — e.g.
+        em  "I had a tattoo 2 months ago, can I donate?"
+    form.eligibility-chat-form#eligibility-chat-form(autocomplete='off')
+      input#eligibility-chat-input(type='text' placeholder='Type your question…' maxlength='500' required)
+      button.btn.btn-primary.btn-sm(type='submit')
+        i.fas.fa-paper-plane
+
+style.
+  #eligibility-chat-root {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 1050;
+    font-family: inherit;
+  }
+  #eligibility-chat-toggle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    border: none;
+    background: #F46F6F;
+    color: white;
+    font-size: 1.5rem;
+    box-shadow: 0 6px 20px rgba(244, 111, 111, 0.45);
+    cursor: pointer;
+    transition: transform .15s ease;
+  }
+  #eligibility-chat-toggle:hover { transform: translateY(-2px); }
+  .eligibility-chat-panel {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    width: 360px;
+    max-width: calc(100vw - 40px);
+    height: 480px;
+    background: white;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .eligibility-chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    border-bottom: 1px solid #f0f0f0;
+    background: #fff7f7;
+  }
+  .eligibility-chat-close {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  .eligibility-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    background: #fafafa;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .ec-msg {
+    padding: 9px 12px;
+    border-radius: 14px;
+    max-width: 86%;
+    font-size: 0.92rem;
+    line-height: 1.35;
+    word-wrap: break-word;
+  }
+  .ec-msg-user {
+    background: #F46F6F;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 4px;
+  }
+  .ec-msg-bot {
+    background: white;
+    color: #222;
+    align-self: flex-start;
+    border: 1px solid #eee;
+    border-bottom-left-radius: 4px;
+  }
+  .ec-msg-sources {
+    font-size: 0.78rem;
+    color: #777;
+    margin-top: 4px;
+  }
+  .eligibility-chat-form {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    border-top: 1px solid #f0f0f0;
+    background: white;
+  }
+  .eligibility-chat-form input {
+    flex: 1;
+    border: 1px solid #ddd;
+    border-radius: 18px;
+    padding: 8px 14px;
+    font-size: 0.92rem;
+    outline: none;
+  }
+  .eligibility-chat-form input:focus { border-color: #F46F6F; }

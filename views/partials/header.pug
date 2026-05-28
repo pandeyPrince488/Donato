@@ -52,6 +52,10 @@ nav.navbar.navbar-expand-lg.fixed-top.custom-navbar
         li.nav-item(class=(title === 'Donors') ? 'active' : undefined)
           a.nav-link(href='/donors') Find Donors
         if user
+          li.nav-item(class=(title === 'Smart Donor Matches') ? 'active' : undefined)
+            a.nav-link(href='/donors/smart')
+              i.fas.fa-bolt.mr-1.text-danger
+              | Smart Match
           li.nav-item(class=(title === 'Chat') ? 'active' : undefined)
             a.nav-link(href='/chat') Chat
       ul.navbar-nav.ml-auto

@@ -1,0 +1,87 @@
+extends layout
+
+block content
+  .pb-2.mt-2.mb-4.border-bottom.d-flex.justify-content-between.align-items-center
+    div
+      h3.mb-1
+        i.fas.fa-bolt.text-danger.mr-2
+        | Smart Donor Matches
+      small.text-muted
+        | AI-ranked donors within #{radiusKm} km, with a short reason explaining why each is a good match.
+    if typeof usedCppExt !== 'undefined'
+      span.badge.badge-pill(class=usedCppExt ? 'badge-success' : 'badge-secondary' style='font-weight:500;padding:0.5em 0.9em;')
+        if usedCppExt
+          | C++ hot-path: ON
+        else
+          | Python fallback
+
+  if needsProfile === 'bloodGroup'
+    .alert.alert-warning
+      | Please 
+      a(href='/account') update your profile 
+      | with your blood group to see Smart Matches.
+  else if needsProfile === 'location'
+    .alert.alert-warning
+      | Please 
+      a(href='/account') set your location 
+      | on your profile so we can rank nearby donors.
+  else if aiError
+    .alert.alert-danger
+      strong AI service is currently unreachable. 
+      | Showing no ranked donors. You can still 
+      a(href='/donors') browse all nearby donors 
+      | in the meantime.
+  else if !ranked || ranked.length === 0
+    .alert.alert-info
+      | No compatible, eligible donors found in #{radiusKm} km right now (out of #{candidateCount || 0} nearby).
+      | Try widening the radius: 
+      a(href='/donors/smart?radius=80') 80 km 
+      | · 
+      a(href='/donors/smart?radius=120') 120 km
+  else
+    if modelNote
+      .alert.alert-light.border.small.mb-3= modelNote
+
+    .row
+      each donor, idx in ranked
+        .col-md-6.mb-4
+          .card.h-100
+            .card-body
+              .d-flex.justify-content-between.align-items-start
+                div
+                  h5.card-title.mb-1
+                    span.badge.badge-dark.mr-2 ##{idx + 1}
+                    | #{donor.name}
+                    if donor.online
+                      span.badge.badge-success.ml-2(style='font-weight:500;') online
+                  .small.text-muted
+                    if donor.city
+                      | #{donor.city} · 
+                    | #{donor.distanceKm} km away
+                .text-right
+                  .h4.mb-0.text-danger
+                    | #{Math.round(donor.score * 100)}
+                  small.text-muted match
+              hr.my-2
+              p.mb-2
+                span.badge.badge-light.mr-1
+                  strong Blood Group:
+                  |  #{donor.bloodGroup}
+              if donor.reason
+                .alert.alert-light.border.small.py-2.px-3.mb-2(style='background:#fff7f7;')
+                  i.fas.fa-quote-left.text-danger.mr-2.small
+                  | #{donor.reason}
+              details.small.text-muted.mb-2
+                summary.text-secondary(style='cursor:pointer;') Why this score?
+                ul.mb-0.mt-2
+                  each weight, key in donor.features
+                    li #{key}: #{(weight * 100).toFixed(0)}%
+              .d-flex.justify-content-between.align-items-center.mt-3
+                a.btn.btn-primary.btn-sm(href=`/chat?userId=${donor._id}`)
+                  i.fas.fa-comments.mr-2
+                  | Chat
+                if donor.email
+                  a.btn.btn-outline-secondary.btn-sm(href=`mailto:${donor.email}`)
+                    i.fas.fa-envelope.mr-2
+                    | Email
+

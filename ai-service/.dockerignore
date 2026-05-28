@@ -1,0 +1,7 @@
+.venv
+__pycache__
+*.pyc
+data/chroma
+cpp_ext/build
+cpp_ext/*.egg-info
+.env

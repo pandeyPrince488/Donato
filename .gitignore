@@ -22,10 +22,24 @@ public/css/main.css
 
 # API keys and secrets
 .env
+ai-service/.env
 
 # Dependency directory
 node_modules
 bower_components
+
+# Python / AI service
+__pycache__/
+*.py[cod]
+*.so
+ai-service/.venv/
+ai-service/data/chroma/
+ai-service/cpp_ext/build/
+ai-service/cpp_ext/*.egg-info/
+ai-service/build/
+
+# Local portable toolchain (Node, uv, portable Python) — never commit
+.tools/
 
 # Editors
 .idea

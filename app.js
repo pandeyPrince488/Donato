@@ -31,8 +31,9 @@ const limiter = rateLimit({
   legacyHeaders: false,
   message: 'Too many requests, please try again later.',
   skip: (req) => {
-    return req.path.startsWith('/api/chat/') || 
+    return req.path.startsWith('/api/chat/') ||
            req.path.startsWith('/chat') ||
+           req.path === '/api/eligibility-chat' ||
            req.path === '/socket.io/';
   }
 });
@@ -45,6 +46,15 @@ const chatLimiter = rateLimit({
   message: 'Too many chat requests, please try again later.'
 });
 
+// AI eligibility chat is far more expensive (LLM tokens) so cap it harder.
+const aiChatLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Eligibility chat is rate limited. Please slow down.'
+});
+
 let numberOfProxies;
 if (secureTransfer) numberOfProxies = 1; else numberOfProxies = 0;
 
@@ -55,6 +65,7 @@ const homeController = require('./controllers/home');
 const userController = require('./controllers/user');
 const chatController = require('./controllers/chatController');
 const donorController = require('./controllers/donorController');
+const aiController = require('./controllers/aiController');
 
 /**
  * API keys and Passport configuration.
@@ -159,7 +170,11 @@ app.use((req, res, next) => {
 
 // Skip CSRF for specific routes
 app.use((req, res, next) => {
-  if (req.path === '/socket.io/' || req.path.startsWith('/api/chat/')) {
+  if (
+    req.path === '/socket.io/' ||
+    req.path.startsWith('/api/chat/') ||
+    req.path === '/api/eligibility-chat'
+  ) {
     return next();
   }
   lusca.csrf()(req, res, next);
@@ -202,6 +217,8 @@ app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
 app.post('/account/profile', passportConfig.isAuthenticated, userController.postUpdateProfile);
 app.post('/account/password', passportConfig.isAuthenticated, userController.postUpdatePassword);
 app.get('/donors', donorController.getDonors);
+app.get('/donors/smart', passportConfig.isAuthenticated, aiController.getSmartDonors);
+app.post('/api/eligibility-chat', aiController.postEligibilityChat);
 app.get('/about', (req, res) => {
   res.render('about', {
     title: 'About Us'
@@ -235,6 +252,7 @@ if (process.env.NODE_ENV === 'development') {
 // Apply chat-specific rate limiter to chat routes
 app.use('/api/chat', chatLimiter);
 app.use('/chat', chatLimiter);
+app.use('/api/eligibility-chat', aiChatLimiter);
 
 /**
  * Start Express server.

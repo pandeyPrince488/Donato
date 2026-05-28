@@ -38,56 +38,71 @@ block content
       50%      { transform: translateY(-22px) rotate(8deg); }
     }
 
-    /* Mini "how it works" strip */
-    .feature-strip {
+    /* Three-step "how it works" */
+    .steps {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 1.4rem;
-      margin: 4rem 0 5rem;
+      margin: 4rem 0 1.5rem;
       @media (max-width: 800px) { grid-template-columns: 1fr; }
     }
-    .feature-card {
+    .step {
       background: var(--bg-elev);
       border: 1px solid var(--border);
       border-radius: var(--r-lg);
       padding: 1.8rem;
-      transition: all 0.25s var(--ease);
       position: relative;
-      overflow: hidden;
+      transition: all 0.25s var(--ease);
     }
-    .feature-card:hover {
+    .step:hover {
       transform: translateY(-3px);
       box-shadow: var(--shadow-md);
       border-color: rgba(229,35,44,0.18);
     }
-    .feature-card .icon {
-      width: 46px; height: 46px;
-      border-radius: 14px;
-      background: var(--brand-soft);
-      color: var(--brand);
+    .step-num {
+      position: absolute;
+      top: -14px; left: 1.4rem;
+      width: 32px; height: 32px;
+      background: var(--grad-brand);
+      color: white;
+      border-radius: 50%;
       display: grid; place-items: center;
-      font-size: 1.3rem;
-      margin-bottom: 1rem;
+      font-weight: 700;
+      font-size: 0.92rem;
+      box-shadow: 0 4px 12px -2px rgba(229,35,44,0.4);
     }
-    .feature-card h3 {
-      font-size: 1.15rem; margin: 0 0 0.4rem;
+    .step h3 {
+      font-size: 1.1rem;
+      margin: 0.4rem 0 0.5rem;
       letter-spacing: -0.01em;
     }
-    .feature-card p {
+    .step p {
       color: var(--fg-muted);
       font-size: 0.92rem;
       line-height: 1.55;
       margin: 0;
     }
-    .feature-card .badge-pos {
-      position: absolute; top: 1rem; right: 1rem;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--brand);
-      background: var(--brand-soft);
-      padding: 3px 9px;
-      border-radius: 999px;
-      letter-spacing: 0.04em;
+
+    /* Subtle "made with" strip near the bottom — for recruiters, not the spotlight */
+    .made-with {
+      margin: 5rem 0 2rem;
+      padding: 1.6rem;
+      background: var(--bg-muted);
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--r-lg);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      text-align: center;
+    }
+    .made-with-label {
+      color: var(--fg-muted);
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      margin-right: 0.4rem;
     }
 
   .home-bg
@@ -103,20 +118,21 @@ block content
     .home-shell
       span.hero-eyebrow
         span.live-dot(style='background: var(--brand);')
-        | AI-powered blood-donor matching · live now
+        | Smart blood-donor matching · live now
 
       h1.hero-headline
         | Find a compatible donor 
         span.gradient-text in seconds.
+
       p.hero-sub
-        | Donato pairs a real-time donor matcher with a knowledge-grounded eligibility assistant.
-        | Built on a Python AI service with vector retrieval, an LLM-explained ranker, and a C++ hot path.
+        | Donato matches you with the right blood donors near you, instantly.
+        | Built for the moments when every minute counts.
 
       if !user
         .hero-cta
           a.btn.btn-primary.btn-lg(href='/signup')
             i.fas.fa-bolt.me-2
-            | Get started
+            | Get started — it's free
           a.btn.btn-outline-primary.btn-lg(href='/login')
             i.fas.fa-arrow-right-to-bracket.me-2
             | Log in
@@ -124,95 +140,40 @@ block content
         .hero-cta
           a.btn.btn-primary.btn-lg(href='/donors/smart')
             i.fas.fa-bolt.me-2
-            | Try Smart Match
+            | Find a donor now
           a.btn.btn-outline-primary.btn-lg(href='/account')
             i.fas.fa-user-gear.me-2
-            | Profile
-
-      .hero-tech-row
-        span.chip.chip-tech
-          i.fas.fa-brain
-          | RAG · vector retrieval
-        span.chip.chip-tech
-          i.fas.fa-microchip
-          | ONNX MiniLM
-        span.chip.chip-tech
-          i.fas.fa-bolt-lightning
-          | Groq Llama-3.1-8B
-        span.chip.chip-tech
-          i.fas.fa-code
-          | C++ pybind11 hot path
-        span.chip.chip-tech
-          i.fas.fa-shield-halved
-          | Strict context-only LLM
-
-      .hero-stats
-        .hero-stat
-          .stat-num.tabular(data-target='13', data-suffix='') 13
-          .stat-label Eligibility chunks indexed for chatbot retrieval
-        .hero-stat
-          .stat-num.tabular(data-target='99', data-suffix='ms') 99ms
-          .stat-label Average chatbot retrieval latency (ONNX MiniLM)
-        .hero-stat
-          .stat-num.tabular(data-target='8', data-suffix='') 8
-          .stat-label Blood groups matched with hard compatibility gates
+            | My profile
 
   .home-shell
-    .feature-strip
-      .feature-card
-        span.badge-pos AI
-        .icon
-          i.fas.fa-magnifying-glass-chart
-        h3 Smart Donor Matcher
-        p Distance, freshness, response history, blood compatibility &amp; recency are scored, top-K reranked, then a single batched LLM call writes a one-line "why this donor" reason.
+    .steps
+      .step
+        .step-num 1
+        h3 Tell us about you
+        p Your blood group and a rough location is all we need. Takes under a minute.
+      .step
+        .step-num 2
+        h3 See ranked matches
+        p Compatible donors near you, sorted by who is most likely to be available right now.
+      .step
+        .step-num 3
+        h3 Reach out instantly
+        p Message donors directly inside the app, or email them with one click.
 
-      .feature-card
-        span.badge-pos RAG
-        .icon
-          i.fas.fa-comment-medical
-        h3 Eligibility Assistant
-        p A floating chatbot grounded in WHO/Red Cross-style donor rules. MiniLM embeddings + Chroma vector store + a refusal threshold keep it from hallucinating.
-
-      .feature-card
-        span.badge-pos C++
-        .icon
-          i.fas.fa-bolt
-        h3 Hot Path in C++
-        p Per-candidate Haversine distance batched in C++ via pybind11, with a graceful pure-Python fallback if the build fails. Up to ~5× faster than the Python path on benchmark.
+    .made-with
+      span.made-with-label Built with
+      span.chip.chip-tech
+        i.fas.fa-brain
+        | Retrieval-augmented AI
+      span.chip.chip-tech
+        i.fas.fa-shield-halved
+        | WHO/Red Cross eligibility rules
+      span.chip.chip-tech
+        i.fas.fa-bolt-lightning
+        | Real-time matching
 
   script.
-    // Count-up the hero stats once they enter the viewport.
     document.addEventListener('DOMContentLoaded', function() {
-      var nums = document.querySelectorAll('.hero-stat .stat-num[data-target]');
-      var animateCounter = function(el) {
-        var target = parseInt(el.getAttribute('data-target'), 10);
-        var suffix = el.getAttribute('data-suffix') || '';
-        var start = 0;
-        var dur = 1100;
-        var t0 = performance.now();
-        var step = function(now) {
-          var p = Math.min(1, (now - t0) / dur);
-          // ease out
-          var v = Math.round(target * (1 - Math.pow(1 - p, 3)));
-          el.textContent = v + suffix;
-          if (p < 1) requestAnimationFrame(step);
-        };
-        requestAnimationFrame(step);
-      };
-      if ('IntersectionObserver' in window) {
-        var io = new IntersectionObserver(function(entries) {
-          entries.forEach(function(e) {
-            if (e.isIntersecting) {
-              animateCounter(e.target);
-              io.unobserve(e.target);
-            }
-          });
-        }, { threshold: 0.5 });
-        nums.forEach(function(n) { io.observe(n); });
-      } else {
-        nums.forEach(animateCounter);
-      }
-
       // Best-effort hide of Spline watermark
       var viewer = document.querySelector('spline-viewer');
       var clean = function() {

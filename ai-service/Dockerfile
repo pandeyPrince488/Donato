@@ -29,8 +29,8 @@ COPY *.py ./
 COPY data/ ./data/
 COPY tests/ ./tests/
 
-# Pre-download the embedding model so first request isn't slow.
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')"
+# Pre-download the ONNX MiniLM model used by chromadb so first request isn't slow.
+RUN python -c "from chromadb.utils import embedding_functions; ef = embedding_functions.DefaultEmbeddingFunction(); ef(['warmup'])"
 
 EXPOSE 8000
 ENV AI_SERVICE_PORT=8000 \

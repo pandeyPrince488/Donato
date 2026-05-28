@@ -105,10 +105,11 @@ class EligibilityRAG:
         persist_dir = os.getenv("CHROMA_PERSIST_DIR", "./data/chroma")
         os.makedirs(persist_dir, exist_ok=True)
         self._client = chromadb.PersistentClient(path=persist_dir)
-        # MiniLM-L6-v2: 22MB model, 384-dim embeddings, ~all you need for short FAQ chunks.
-        self._embed_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-            model_name="sentence-transformers/all-MiniLM-L6-v2"
-        )
+        # ONNX-runtime version of MiniLM-L6-v2 (same model, ~80 MB ONNX vs ~400 MB
+        # for the PyTorch + sentence-transformers stack). Identical 384-dim vectors,
+        # so an existing index built with the PyTorch version stays compatible.
+        # The ONNX model is bundled by chromadb and downloaded once on first use.
+        self._embed_fn = embedding_functions.DefaultEmbeddingFunction()
         self._collection = self._client.get_or_create_collection(
             name=COLLECTION_NAME, embedding_function=self._embed_fn
         )

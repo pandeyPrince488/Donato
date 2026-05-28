@@ -149,6 +149,14 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(limiter);
+
+// Mount the eligibility-chat endpoint BEFORE the lusca CSRF middleware.
+// The widget POSTs JSON without a CSRF token (no _csrf field, no
+// x-xsrf-token header), so lusca would reject with 403 + an HTML page,
+// and the browser fetch() would then fail to parse the body as JSON.
+// This is a public, rate-limited, bearer-authenticated endpoint to a
+// trusted internal service — CSRF doesn't add meaningful protection here.
+app.post('/api/eligibility-chat', aiChatLimiter, aiController.postEligibilityChat);
 app.use(session({
   resave: true,
   saveUninitialized: true,
@@ -253,7 +261,8 @@ app.get('/account/verify/:token', passportConfig.isAuthenticated, userController
 app.get('/account/unlink/:provider', passportConfig.isAuthenticated, userController.getOauthUnlink);
 app.get('/donors', donorController.getDonors);
 app.get('/donors/smart', passportConfig.isAuthenticated, aiController.getSmartDonors);
-app.post('/api/eligibility-chat', aiController.postEligibilityChat);
+// /api/eligibility-chat is registered earlier (before lusca CSRF) so the
+// vanilla-JS chatbot widget's POST isn't rejected for missing CSRF token.
 
 // Google OAuth — only registered if creds are present (see config/passport.js).
 if (passportConfig.isGoogleEnabled) {
@@ -294,10 +303,11 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Apply chat-specific rate limiter to chat routes
+// Apply chat-specific rate limiter to chat routes.
+// (aiChatLimiter for /api/eligibility-chat is applied inline at registration
+// time above, since that route is mounted before this point.)
 app.use('/api/chat', chatLimiter);
 app.use('/chat', chatLimiter);
-app.use('/api/eligibility-chat', aiChatLimiter);
 
 /**
  * Start Express server.

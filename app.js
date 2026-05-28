@@ -21,6 +21,13 @@ const upload = multer({ dest: path.join(__dirname, 'uploads') });
 
 dotenv.config({ path: '.env' });
 
+// Render auto-injects RENDER_EXTERNAL_URL on every web service (e.g.
+// https://donato-web.onrender.com). Falling back to it means the app boots
+// without manual BASE_URL config on the first deploy, while still letting a
+// manually-set BASE_URL win locally or in any environment that needs it.
+if (!process.env.BASE_URL) {
+  process.env.BASE_URL = process.env.RENDER_EXTERNAL_URL || 'http://localhost:8080';
+}
 
 const secureTransfer = (process.env.BASE_URL.startsWith('https'));
 

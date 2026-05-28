@@ -51,13 +51,16 @@ services:
       - key: NODE_ENV
         value: production
       - key: BASE_URL
-        sync: false          # set to your donato-web URL, e.g. https://donato-web.onrender.com
+        sync: false          # optional: app falls back to RENDER_EXTERNAL_URL (auto-injected by Render). Override only if you have a custom domain.
       - key: SESSION_SECRET
         generateValue: true
       - key: MONGODB_URI
         sync: false          # paste your MongoDB Atlas connection string here
       - key: AI_SERVICE_URL
-        sync: false          # paste donato-ai's URL, e.g. https://donato-ai.onrender.com
+        fromService:         # auto-fills with donato-ai's public URL (e.g. https://donato-ai-xxxx.onrender.com) — no manual paste needed
+          type: web
+          name: donato-ai
+          envVarKey: RENDER_EXTERNAL_URL
       - key: AI_SERVICE_TOKEN
         fromService:
           type: web

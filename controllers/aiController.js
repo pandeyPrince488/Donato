@@ -201,20 +201,34 @@ exports.getSmartDonors = async (req, res, next) => {
 
 /**
  * POST /api/eligibility-chat
- * Body: { question: string }
+ * Body: { question: string, history?: Array<{role: 'user'|'assistant', content: string}> }
+ *
+ * `history` is optional and lets the AI service ground follow-up questions
+ * (e.g. "explain that") in the most recent turns. We sanitize it server-side
+ * so the public endpoint can't be abused as a generic LLM relay.
  */
 exports.postEligibilityChat = async (req, res) => {
   try {
     const question = (req.body && req.body.question) || '';
-    if (typeof question !== 'string' || question.trim().length < 2) {
-      return res.status(400).json({ error: 'question must be at least 2 characters' });
+    if (typeof question !== 'string' || question.trim().length < 1) {
+      return res.status(400).json({ error: 'question must not be empty' });
     }
     if (question.length > 500) {
       return res.status(400).json({ error: 'question too long (max 500 chars)' });
     }
+
+    // Sanitize history: only allow {role: user|assistant, content: string<=2000}.
+    // Cap at last 12 messages so a malicious client can't blow up token usage.
+    const rawHistory = Array.isArray(req.body && req.body.history) ? req.body.history : [];
+    const history = rawHistory
+      .filter((m) => m && typeof m === 'object' && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+      .map((m) => ({ role: m.role, content: m.content.slice(0, 2000) }))
+      .slice(-12);
+
     const aiResp = await callAiService('/eligibility-chat', {
       question: question.trim(),
-      top_k: 4
+      top_k: 4,
+      history
     });
     return res.json(aiResp);
   } catch (err) {

@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import os
 from functools import lru_cache
-from typing import Optional
+from typing import List, Dict, Optional
 
 from openai import OpenAI
 
@@ -49,6 +49,21 @@ class LLMClient:
             response_format={"type": "json_object"},
         )
         return resp.choices[0].message.content or "{}"
+
+    def chat(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.4,
+        max_tokens: int = 400,
+    ) -> str:
+        """Multi-turn chat: pass a fully-formed messages list (system + history + current user)."""
+        resp = self._client.chat.completions.create(
+            model=self._model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        return resp.choices[0].message.content or ""
 
 
 @lru_cache(maxsize=1)

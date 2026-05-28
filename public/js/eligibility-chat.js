@@ -1,7 +1,9 @@
 /* Eligibility chatbot widget — vanilla JS, no framework.
  *
  * Talks to POST /api/eligibility-chat which proxies to the Python RAG service.
- * Keeps last N turns in memory only (no persistence) so refresh clears it.
+ * Keeps the last few turns in memory so the bot has context for follow-ups
+ * like "explain that" or "tell me more". History is NOT persisted — refresh
+ * clears it.
  */
 (function () {
   'use strict';
@@ -13,7 +15,10 @@
   var $input = document.getElementById('eligibility-chat-input');
   var $messages = document.getElementById('eligibility-chat-messages');
 
-  if (!$toggle || !$panel || !$form) return; // partial not on this page
+  if (!$toggle || !$panel || !$form) return;
+
+  var history = []; // {role: 'user'|'assistant', content: string}
+  var MAX_HISTORY = 12;
 
   function openPanel() {
     $panel.hidden = false;
@@ -51,15 +56,21 @@
     meta.className = 'ec-msg-sources';
     meta.textContent = data.grounded
       ? 'Grounded in ' + data.sources.length + ' rule(s) from the knowledge base.'
-      : 'No closely-matching rule found.';
-    bubble.appendChild(meta);
+      : '';
+    if (meta.textContent) bubble.appendChild(meta);
+  }
+
+  function pushHistory(role, content) {
+    history.push({ role: role, content: content });
+    if (history.length > MAX_HISTORY) history = history.slice(-MAX_HISTORY);
   }
 
   $form.addEventListener('submit', async function (e) {
     e.preventDefault();
     var question = $input.value.trim();
-    if (question.length < 2) return;
+    if (question.length < 1) return;
     appendMessage('user', question);
+    pushHistory('user', question);
     $input.value = '';
     $input.disabled = true;
 
@@ -70,11 +81,16 @@
       var res = await fetch('/api/eligibility-chat', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ question: question })
+        body: JSON.stringify({
+          question: question,
+          history: history.slice(0, -1) // exclude the message we just pushed; backend adds it
+        })
       });
       var data = await res.json();
-      pending.textContent = data.answer || '(no answer)';
+      var answer = data.answer || '(no answer)';
+      pending.textContent = answer;
       appendSources(pending, data);
+      pushHistory('assistant', answer);
     } catch (err) {
       pending.textContent = 'Network error. Please try again in a moment.';
     } finally {

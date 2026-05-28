@@ -11,13 +11,34 @@ const Donation = require('../models/Donation');
 const randomBytesAsync = promisify(crypto.randomBytes);
 
 /**
+ * True if SMTP is fully configured. Used to skip email-dependent flows
+ * gracefully (e.g. signup without crashing when SMTP_HOST isn't set).
+ */
+const isMailConfigured = () => !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+
+/**
+ * Build a public absolute URL using BASE_URL (https in production) instead of
+ * req.headers.host, which on Render points to the internal hostname.
+ */
+const publicUrl = (req, pathname) => {
+  const base = (process.env.BASE_URL || `${req.protocol}://${req.headers.host}`).replace(/\/$/, '');
+  return `${base}${pathname}`;
+};
+
+/**
  * Helper Function to Send Mail.
  */
 const sendMail = (settings) => {
+  if (!isMailConfigured()) {
+    console.log('[mail] SMTP not configured; skipping email send.');
+    settings.req.flash('warning', { msg: 'Email is not configured on the server. Please contact the site admin.' });
+    return Promise.resolve();
+  }
+  const port = parseInt(process.env.SMTP_PORT || '465', 10);
   const transportConfig = {
     host: process.env.SMTP_HOST,
-    port: 465,
-    secure: true,
+    port,
+    secure: port === 465,
     auth: {
       user: process.env.SMTP_USER,
       pass: process.env.SMTP_PASSWORD
@@ -142,6 +163,37 @@ exports.postSignup = async (req, res, next) => {
       password: req.body.password
     });
     await user.save();
+
+    // Best-effort: fire off a verification email if SMTP is configured. We do
+    // this BEFORE logIn so a slow SMTP server doesn't block the redirect.
+    if (isMailConfigured()) {
+      try {
+        const buf = await randomBytesAsync(16);
+        const token = buf.toString('hex');
+        user.emailVerificationToken = token;
+        await user.save();
+        const verifyUrl = publicUrl(req, `/account/verify/${token}`);
+        const transporter = nodemailer.createTransport({
+          host: process.env.SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT || '465', 10),
+          secure: parseInt(process.env.SMTP_PORT || '465', 10) === 465,
+          auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
+        });
+        transporter.sendMail({
+          to: user.email,
+          from: process.env.SITE_CONTACT_EMAIL || process.env.SMTP_USER,
+          subject: 'Verify your email · Donato',
+          text: `Welcome to Donato!\n\nVerify your email by clicking this link:\n${verifyUrl}\n\nIf you didn't create this account, you can safely ignore this email.`,
+          html: `<p>Welcome to Donato!</p><p>Verify your email by clicking the link below:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p style="color:#888;font-size:12px;">If you didn't create this account, you can safely ignore this email.</p>`
+        }).catch((err) => console.log('[mail] verify-on-signup failed:', err.message));
+        req.flash('info', { msg: `Welcome! We've sent a verification email to ${user.email}.` });
+      } catch (e) {
+        console.log('[signup] could not generate verification token:', e.message);
+      }
+    } else {
+      req.flash('success', { msg: 'Welcome! Your account has been created.' });
+    }
+
     req.logIn(user, (err) => {
       if (err) {
         return next(err);
@@ -404,13 +456,10 @@ exports.getVerifyEmail = (req, res, next) => {
   const sendVerifyEmail = (token) => {
     const mailOptions = {
       to: req.user.email,
-      from: process.env.SITE_CONTACT_EMAIL,
-      subject: 'Please verify your email address on Hackathon Starter',
-      text: `Thank you for registering with hackathon-starter.\n\n
-        This verify your email address please click on the following link, or paste this into your browser:\n\n
-        http://${req.headers.host}/account/verify/${token}\n\n
-        \n\n
-        Thank you!`
+      from: process.env.SITE_CONTACT_EMAIL || process.env.SMTP_USER,
+      subject: 'Verify your email · Donato',
+      text: `Hi,\n\nVerify your email address by clicking the link below or pasting it into your browser:\n\n${publicUrl(req, `/account/verify/${token}`)}\n\nThanks,\nDonato`,
+      html: `<p>Hi,</p><p>Verify your email address by clicking the link below:</p><p><a href="${publicUrl(req, `/account/verify/${token}`)}">${publicUrl(req, `/account/verify/${token}`)}</a></p><p>Thanks,<br/>Donato</p>`
     };
     const mailSettings = {
       successfulType: 'info',
@@ -470,9 +519,10 @@ exports.postReset = (req, res, next) => {
     if (!user) { return; }
     const mailOptions = {
       to: user.email,
-      from: process.env.SITE_CONTACT_EMAIL,
-      subject: 'Your Hackathon Starter password has been changed',
-      text: `Hello,\n\nThis is a confirmation that the password for your account ${user.email} has just been changed.\n`
+      from: process.env.SITE_CONTACT_EMAIL || process.env.SMTP_USER,
+      subject: 'Your Donato password was changed',
+      text: `Hi,\n\nThis confirms that the password for your Donato account ${user.email} was just changed.\n\nIf this wasn't you, contact support immediately.\n`,
+      html: `<p>Hi,</p><p>This confirms that the password for your Donato account <strong>${user.email}</strong> was just changed.</p><p style="color:#888;font-size:12px;">If this wasn't you, contact support immediately.</p>`
     };
     const mailSettings = {
       successfulType: 'success',
@@ -541,12 +591,10 @@ exports.postForgot = (req, res, next) => {
     const token = user.passwordResetToken;
     const mailOptions = {
       to: user.email,
-      from: process.env.SITE_CONTACT_EMAIL,
-      subject: 'Reset your password on Hackathon Starter',
-      text: `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n
-        Please click on the following link, or paste this into your browser to complete the process:\n\n
-        http://${req.headers.host}/reset/${token}\n\n
-        If you did not request this, please ignore this email and your password will remain unchanged.\n`
+      from: process.env.SITE_CONTACT_EMAIL || process.env.SMTP_USER,
+      subject: 'Reset your password · Donato',
+      text: `You requested a password reset for your Donato account.\n\nClick the link below (or paste it into your browser) to choose a new password:\n\n${publicUrl(req, `/reset/${token}`)}\n\nIf you didn't request this, you can safely ignore this email — your password won't change.\n`,
+      html: `<p>You requested a password reset for your Donato account.</p><p>Click the link below to choose a new password:</p><p><a href="${publicUrl(req, `/reset/${token}`)}">${publicUrl(req, `/reset/${token}`)}</a></p><p style="color:#888;font-size:12px;">If you didn't request this, you can safely ignore this email — your password won't change.</p>`
     };
     const mailSettings = {
       successfulType: 'info',

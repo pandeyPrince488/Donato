@@ -1,87 +1,143 @@
 extends layout
 
 block content
-  .pb-2.mt-2.mb-4.border-bottom.d-flex.justify-content-between.align-items-center
-    div
-      h3.mb-1
-        i.fas.fa-bolt.text-danger.mr-2
-        | Smart Donor Matches
-      small.text-muted
-        | AI-ranked donors within #{radiusKm} km, with a short reason explaining why each is a good match.
+  .section-heading
+    span.section-eyebrow.d-flex.align-items-center.gap-2
+      i.fas.fa-bolt
+      | AI · Smart Match
+    h1.section-title.gradient-text Donors ranked for you
+    p.section-sub
+      | A multi-feature ranking pipeline scores compatibility, distance, freshness, response history,
+      | online status, age and same-city. The top results get a one-line LLM-generated justification.
+
+  .d-flex.flex-wrap.gap-2.align-items-center.mb-4
+    span.chip.chip-glass
+      i.fas.fa-location-dot
+      | Within #{radiusKm} km
+    if typeof candidateCount !== 'undefined'
+      span.chip.chip-glass
+        i.fas.fa-database
+        | #{candidateCount} candidates
     if typeof usedCppExt !== 'undefined'
-      span.badge.badge-pill(class=usedCppExt ? 'badge-success' : 'badge-secondary' style='font-weight:500;padding:0.5em 0.9em;')
-        if usedCppExt
-          | C++ hot-path: ON
-        else
+      if usedCppExt
+        span.chip.chip-success
+          i.fas.fa-microchip
+          | C++ hot path: ON
+      else
+        span.chip
+          i.fas.fa-circle-info
           | Python fallback
+    span.ms-auto.d-flex.gap-2
+      a.chip(href='/donors/smart?radius=45' class=(radiusKm == 45 ? 'chip-tech' : ''))
+        | 45 km
+      a.chip(href='/donors/smart?radius=80' class=(radiusKm == 80 ? 'chip-tech' : ''))
+        | 80 km
+      a.chip(href='/donors/smart?radius=120' class=(radiusKm == 120 ? 'chip-tech' : ''))
+        | 120 km
 
   if needsProfile === 'bloodGroup'
     .alert.alert-warning
+      i.fas.fa-circle-exclamation.me-2
       | Please 
       a(href='/account') update your profile 
       | with your blood group to see Smart Matches.
   else if needsProfile === 'location'
     .alert.alert-warning
+      i.fas.fa-circle-exclamation.me-2
       | Please 
       a(href='/account') set your location 
-      | on your profile so we can rank nearby donors.
+      | so we can rank nearby donors.
   else if aiError
     .alert.alert-danger
-      strong AI service is currently unreachable. 
-      | Showing no ranked donors. You can still 
-      a(href='/donors') browse all nearby donors 
-      | in the meantime.
+      i.fas.fa-triangle-exclamation.me-2
+      strong AI service is currently unreachable.
+      |  Showing no ranked donors. You can still 
+      a(href='/donors') browse all nearby donors
+      | .
   else if !ranked || ranked.length === 0
     .alert.alert-info
-      | No compatible, eligible donors found in #{radiusKm} km right now (out of #{candidateCount || 0} nearby).
-      | Try widening the radius: 
-      a(href='/donors/smart?radius=80') 80 km 
-      | · 
-      a(href='/donors/smart?radius=120') 120 km
+      i.fas.fa-circle-info.me-2
+      | No compatible, eligible donors found within #{radiusKm} km right now (out of #{candidateCount || 0} nearby).
+      | Try widening the radius above.
   else
     if modelNote
-      .alert.alert-light.border.small.mb-3= modelNote
+      .alert.alert-light.small.mb-3
+        i.fas.fa-circle-info.me-2
+        | #{modelNote}
 
-    .row
+    .row.g-4
       each donor, idx in ranked
-        .col-md-6.mb-4
-          .card.h-100
-            .card-body
-              .d-flex.justify-content-between.align-items-start
-                div
-                  h5.card-title.mb-1
-                    span.badge.badge-dark.mr-2 ##{idx + 1}
-                    | #{donor.name}
-                    if donor.online
-                      span.badge.badge-success.ml-2(style='font-weight:500;') online
-                  .small.text-muted
-                    if donor.city
-                      | #{donor.city} · 
-                    | #{donor.distanceKm} km away
-                .text-right
-                  .h4.mb-0.text-danger
-                    | #{Math.round(donor.score * 100)}
-                  small.text-muted match
-              hr.my-2
-              p.mb-2
-                span.badge.badge-light.mr-1
-                  strong Blood Group:
-                  |  #{donor.bloodGroup}
-              if donor.reason
-                .alert.alert-light.border.small.py-2.px-3.mb-2(style='background:#fff7f7;')
-                  i.fas.fa-quote-left.text-danger.mr-2.small
-                  | #{donor.reason}
-              details.small.text-muted.mb-2
-                summary.text-secondary(style='cursor:pointer;') Why this score?
-                ul.mb-0.mt-2
-                  each weight, key in donor.features
-                    li #{key}: #{(weight * 100).toFixed(0)}%
-              .d-flex.justify-content-between.align-items-center.mt-3
-                a.btn.btn-primary.btn-sm(href=`/chat?userId=${donor._id}`)
-                  i.fas.fa-comments.mr-2
-                  | Chat
-                if donor.email
-                  a.btn.btn-outline-secondary.btn-sm(href=`mailto:${donor.email}`)
-                    i.fas.fa-envelope.mr-2
-                    | Email
+        .col-md-6
+          .card.donor-card
+            span.donor-rank ##{idx + 1}
 
+            .donor-head
+              div(style='min-width:0; flex:1;')
+                h3.donor-name
+                  | #{donor.name}
+                  if donor.online
+                    span.live-dot(title='Online now')
+                .donor-meta
+                  if donor.city
+                    | #{donor.city} 
+                    span.text-muted-warm.mx-1 ·
+                  | #{donor.distanceKm} km away
+              .score-ring(style=`--p:${Math.round(donor.score * 100)};`)
+                span.score-val #{Math.round(donor.score * 100)}
+
+            .d-flex.flex-wrap.gap-2
+              span.bg-pill
+                i.fas.fa-droplet
+                | #{donor.bloodGroup}
+              span.distance-pill
+                i.fas.fa-route
+                | #{donor.distanceKm} km
+              if donor.online
+                span.chip.chip-success(style='font-size:0.78rem;padding:0.25rem 0.7rem;')
+                  i.fas.fa-circle.fa-2xs
+                  | online
+
+            if donor.reason
+              .donor-reason= donor.reason
+
+            details.small.text-muted-warm(style='cursor:pointer;')
+              summary(style='font-weight:500; color: var(--fg-muted);') Why this score?
+              .feature-bars
+                each weight, key in donor.features
+                  .feature-bar-row
+                    span= key.replace(/_/g, ' ')
+                    .bar-track
+                      .bar-fill(style=`width:${Math.round(weight * 100)}%`)
+                    span.bar-num= Math.round(weight * 100) + '%'
+
+            .d-flex.justify-content-end.gap-2.mt-2
+              if donor.email
+                a.btn.btn-ghost.btn-sm(href=`mailto:${donor.email}`)
+                  i.fas.fa-envelope.me-1
+                  | Email
+              a.btn.btn-primary.btn-sm(href=`/chat?userId=${donor._id}`)
+                i.fas.fa-comments.me-1
+                | Chat
+
+block scripts
+  script.
+    // Animate score rings from 0 to their target value on mount.
+    document.addEventListener('DOMContentLoaded', function() {
+      var rings = document.querySelectorAll('.score-ring');
+      rings.forEach(function(r, i) {
+        var target = parseFloat((r.style.getPropertyValue('--p') || '0'));
+        r.style.setProperty('--p', '0');
+        setTimeout(function() {
+          r.animate([{ '--p': 0 }, { '--p': target }], { duration: 900, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'forwards' });
+          // Fallback for browsers without CSS @property animation:
+          var t0 = performance.now();
+          var step = function(now) {
+            var p = Math.min(1, (now - t0) / 900);
+            var eased = 1 - Math.pow(1 - p, 3);
+            r.style.setProperty('--p', (target * eased).toFixed(1));
+            if (p < 1) requestAnimationFrame(step);
+          };
+          requestAnimationFrame(step);
+        }, i * 60);
+      });
+    });

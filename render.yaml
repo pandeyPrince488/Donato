@@ -66,3 +66,24 @@ services:
           type: web
           name: donato-ai
           envVarKey: AI_SERVICE_TOKEN
+
+      # --- Optional: SMTP for email verification + password reset ---
+      # Leave empty to disable email entirely; the app will skip those flows
+      # gracefully and signup still works (just no verification email).
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SITE_CONTACT_EMAIL
+        sync: false
+
+      # --- Optional: Google OAuth ---
+      # Set both to enable the "Continue with Google" button on login/signup.
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false

@@ -1,50 +1,65 @@
 extends layout
 
 block content
-  .pb-2.mt-2.mb-4.border-bottom
-    h3 Donors near you with matching blood group
-  
+  .section-heading
+    span.section-eyebrow
+      i.fas.fa-location-dot.me-2
+      | Nearby
+    h1.section-title Donors near you
+    p.section-sub Filtered by blood compatibility within 45 km of your saved location.
+
   if !user
     .alert.alert-warning
+      i.fas.fa-circle-exclamation.me-2
       | Please 
-      a(href='/login') login 
+      a(href='/login') log in 
       | or 
       a(href='/signup') create an account 
-      | to see donors with matching blood group and to chat with them.
+      | to see donors with matching blood group and chat with them.
   else if !user.profile.bloodGroup
     .alert.alert-warning
+      i.fas.fa-circle-exclamation.me-2
       | Please 
       a(href='/account') update your profile 
       | with your blood group to see matching donors.
   else if donors.length === 0
-    .alert.alert-info No donors found within 45km with matching blood group.
+    .alert.alert-info
+      i.fas.fa-circle-info.me-2
+      | No donors found within 45 km with matching blood group.
+      |  Try the 
+      a(href='/donors/smart') Smart Match 
+      | view — it widens the search and lets you tune the radius.
   else
-    .row
+    .row.g-4
       each donor in donors
-        .col-md-6.mb-4
-          .card
-            .card-body
-              h5.card-title #{donor.profile.name || 'Anonymous Donor'}
-              p.card-text
-                strong Blood Group: 
+        .col-md-6
+          .card.donor-card
+            .donor-head
+              div(style='min-width:0; flex:1;')
+                h3.donor-name= donor.profile.name || 'Anonymous Donor'
+                .donor-meta
+                  if donor.profile.location && donor.profile.location.address
+                    | #{donor.profile.location.address}
+                  else if donor.distance !== null
+                    | #{donor.distance} km away
+              span.bg-pill
+                i.fas.fa-droplet
                 | #{donor.profile.bloodGroup}
-                br
-                if donor.distance !== null
-                  strong Distance: 
-                  | #{donor.distance} km
-                  br
-                if donor.profile.location && donor.profile.location.address
-                  strong Location: 
-                  | #{donor.profile.location.address}
-              .d-flex.justify-content-between.align-items-center.mt-3
-                a.btn.btn-primary(href=`/chat?userId=${donor._id}`)
-                  i.fas.fa-comments.me-2
-                  | Chat with Donor
-                if donor.email
-                  a.btn.btn-outline-primary(href=`mailto:${donor.email}`)
-                    i.fas.fa-envelope.me-2
-                    | Email
+
+            if donor.distance !== null
+              span.distance-pill
+                i.fas.fa-route
+                | #{donor.distance} km
+
+            .d-flex.justify-content-end.gap-2.mt-2
+              if donor.email
+                a.btn.btn-ghost.btn-sm(href=`mailto:${donor.email}`)
+                  i.fas.fa-envelope.me-1
+                  | Email
+              a.btn.btn-primary.btn-sm(href=`/chat?userId=${donor._id}`)
+                i.fas.fa-comments.me-1
+                | Chat
 
 block scripts
   script.
-    // Add any required JavaScript here
+    // (nothing yet)

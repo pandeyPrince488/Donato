@@ -26,24 +26,33 @@
   });
   $close.addEventListener('click', closePanel);
 
-  function appendMessage(role, text, sources) {
+  function appendMessage(role, text) {
     var bubble = document.createElement('div');
     bubble.className = 'ec-msg ' + (role === 'user' ? 'ec-msg-user' : 'ec-msg-bot');
     bubble.textContent = text;
-    if (role === 'bot' && sources && sources.length) {
-      var meta = document.createElement('div');
-      meta.className = 'ec-msg-sources';
-      meta.textContent = 'Based on ' + sources.length + ' rule(s) from the eligibility knowledge base.';
-      bubble.appendChild(meta);
-    }
     $messages.appendChild(bubble);
-    $messages.scrollTop = $messages.scrollHeight;
+    requestAnimationFrame(function () {
+      $messages.scrollTop = $messages.scrollHeight;
+    });
     return bubble;
   }
 
-  function setLoading(bubble) {
-    bubble.textContent = '…thinking';
-    bubble.classList.add('ec-msg-loading');
+  function setTyping(bubble) {
+    bubble.textContent = '';
+    var t = document.createElement('span');
+    t.className = 'ec-msg-typing';
+    t.innerHTML = '<span></span><span></span><span></span>';
+    bubble.appendChild(t);
+  }
+
+  function appendSources(bubble, data) {
+    if (!data.sources || !data.sources.length) return;
+    var meta = document.createElement('div');
+    meta.className = 'ec-msg-sources';
+    meta.textContent = data.grounded
+      ? 'Grounded in ' + data.sources.length + ' rule(s) from the knowledge base.'
+      : 'No closely-matching rule found.';
+    bubble.appendChild(meta);
   }
 
   $form.addEventListener('submit', async function (e) {
@@ -55,7 +64,7 @@
     $input.disabled = true;
 
     var pending = appendMessage('bot', '');
-    setLoading(pending);
+    setTyping(pending);
 
     try {
       var res = await fetch('/api/eligibility-chat', {
@@ -64,22 +73,16 @@
         body: JSON.stringify({ question: question })
       });
       var data = await res.json();
-      pending.classList.remove('ec-msg-loading');
       pending.textContent = data.answer || '(no answer)';
-      if (data.sources && data.sources.length) {
-        var meta = document.createElement('div');
-        meta.className = 'ec-msg-sources';
-        meta.textContent = data.grounded
-          ? 'Based on ' + data.sources.length + ' rule(s) from the eligibility knowledge base.'
-          : 'No closely matching rule found.';
-        pending.appendChild(meta);
-      }
+      appendSources(pending, data);
     } catch (err) {
-      pending.classList.remove('ec-msg-loading');
       pending.textContent = 'Network error. Please try again in a moment.';
     } finally {
       $input.disabled = false;
       $input.focus();
+      requestAnimationFrame(function () {
+        $messages.scrollTop = $messages.scrollHeight;
+      });
     }
   });
 })();

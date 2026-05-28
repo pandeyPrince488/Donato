@@ -183,6 +183,8 @@ app.use((req, res, next) => {
     BASE_URL: process.env.BASE_URL,
     NODE_ENV: process.env.NODE_ENV,
   };
+  res.locals.googleOauthEnabled = passportConfig.isGoogleEnabled;
+  res.locals.smtpEnabled = !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD);
   next();
 });
 
@@ -231,12 +233,30 @@ app.post('/login', userController.postLogin);
 app.get('/logout', userController.logout);
 app.get('/signup', userController.getSignup);
 app.post('/signup', userController.postSignup);
+app.get('/forgot', userController.getForgot);
+app.post('/forgot', userController.postForgot);
+app.get('/reset/:token', userController.getReset);
+app.post('/reset/:token', userController.postReset);
 app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
 app.post('/account/profile', passportConfig.isAuthenticated, userController.postUpdateProfile);
 app.post('/account/password', passportConfig.isAuthenticated, userController.postUpdatePassword);
+app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
+app.get('/account/verify', passportConfig.isAuthenticated, userController.getVerifyEmail);
+app.get('/account/verify/:token', passportConfig.isAuthenticated, userController.getVerifyEmailToken);
+app.get('/account/unlink/:provider', passportConfig.isAuthenticated, userController.getOauthUnlink);
 app.get('/donors', donorController.getDonors);
 app.get('/donors/smart', passportConfig.isAuthenticated, aiController.getSmartDonors);
 app.post('/api/eligibility-chat', aiController.postEligibilityChat);
+
+// Google OAuth — only registered if creds are present (see config/passport.js).
+if (passportConfig.isGoogleEnabled) {
+  app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+  app.get(
+    '/auth/google/callback',
+    passport.authenticate('google', { failureRedirect: '/login', failureFlash: true }),
+    (req, res) => res.redirect(req.session.returnTo || '/')
+  );
+}
 app.get('/about', (req, res) => {
   res.render('about', {
     title: 'About Us'

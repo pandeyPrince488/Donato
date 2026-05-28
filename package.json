@@ -19,6 +19,7 @@
     "lint": "eslint \"**/*.js\"",
     "prepare": "node -e \"process.env.NODE_ENV==='production'||require('child_process').execSync('husky install',{stdio:'inherit'})\"",
     "scss": "sass --no-source-map --load-path=node_modules --update ./public/css:./public/css",
+    "seed": "node scripts/seed.js",
     "lintStage": "node_modules/.bin/lint-staged"
   },
   "lint-staged": {

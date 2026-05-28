@@ -105,8 +105,19 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/bloodchai
   family: 4
 });
 
-mongoose.connection.on('connected', () => {
+mongoose.connection.on('connected', async () => {
   console.log('MongoDB connected successfully');
+  // Auto-seed the database on first deploy so the demo has data to show.
+  // Runs only when the User collection is empty (idempotent), or when
+  // SEED_FORCE=true is set explicitly.
+  try {
+    const { seed } = require('./scripts/seed');
+    const result = await seed({ force: process.env.SEED_FORCE === 'true' });
+    if (result.skipped) console.log(`[seed] skipped: ${result.reason}`);
+    else console.log(`[seed] populated ${result.users} users + ${result.donations} donations. Demo login: ${result.demo.email} / ${result.demo.password}`);
+  } catch (err) {
+    console.warn('[seed] failed (non-fatal):', err.message);
+  }
 });
 
 mongoose.connection.on('error', (err) => {

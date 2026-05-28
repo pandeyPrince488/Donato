@@ -85,6 +85,12 @@ const passportConfig = require('./config/passport');
 const app = express();
 console.log('Run this app using "npm start" to include sass/scss/css builds.\n');
 
+// Cache-busting tag for static assets. Regenerated on every process start, so
+// each Render deploy gets a fresh URL and browsers can't serve stale CSS/JS.
+const ASSET_VERSION = process.env.RENDER_GIT_COMMIT
+  || process.env.SOURCE_VERSION
+  || Date.now().toString(36);
+
 /**
  * Socket.io
  */
@@ -185,6 +191,7 @@ app.use((req, res, next) => {
   };
   res.locals.googleOauthEnabled = passportConfig.isGoogleEnabled;
   res.locals.smtpEnabled = !!(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+  res.locals.assetVersion = ASSET_VERSION;
   next();
 });
 

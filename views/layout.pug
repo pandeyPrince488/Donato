@@ -5,7 +5,7 @@ html(lang='en')
     meta(name='viewport' content='width=device-width, initial-scale=1.0')
     meta(name='theme-color' content='#E5232C')
     title #{title} - Donato
-    link(rel='stylesheet' href='/css/main.css')
+    link(rel='stylesheet' href=`/css/main.css?v=${assetVersion}`)
     link(rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css')
     link(rel='preconnect' href='https://fonts.googleapis.com')
     link(rel='preconnect' href='https://fonts.gstatic.com' crossorigin)
@@ -32,6 +32,6 @@ html(lang='en')
 
     script(src='/js/lib/jquery.min.js')
     script(src='/js/lib/bootstrap.bundle.min.js')
-    script(src='/js/main.js')
-    script(src='/js/eligibility-chat.js')
+    script(src=`/js/main.js?v=${assetVersion}`)
+    script(src=`/js/eligibility-chat.js?v=${assetVersion}`)
     block scripts
